@@ -14,10 +14,12 @@ from pandas import json_normalize
 from PIL import Image
 from streamlit_lottie import st_lottie
 import string
-from st_clickable_images import clickable_images
 
 
 st.set_page_config(page_title="The Books of Adam", layout="wide")
+
+if 'data' not in st.session_state:
+    st.session_state['data'] = []
 
 
 def load_lottieurl(url: str):
@@ -82,6 +84,7 @@ def get_book_data():
 with st.spinner('Getting book data'):
     df_out = get_book_data()
     df = df_out.copy()
+    st.session_state['data'] = df
     
 # Get total number of Sanderson books read
 sander_count = df[df['book.authors.author.name'].str.contains('Sanderson')]['book.authors.author.name'].count()
@@ -123,7 +126,7 @@ with row3_1, _lock:
 
 
 with row3_2, _lock:
-    st.subheader("Book Age")
+    st.subheader("Book Publication Date")
     fig = Figure()
     ax = fig.subplots()
     sns.histplot(
