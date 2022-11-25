@@ -14,8 +14,10 @@ from pandas import json_normalize
 from PIL import Image
 from streamlit_lottie import st_lottie
 import string
+from st_clickable_images import clickable_images
 
-st.set_page_config(page_title="Goodreads Analysis App", layout="wide")
+
+st.set_page_config(page_title="The Books of Adam", layout="wide")
 
 
 def load_lottieurl(url: str):
@@ -35,16 +37,17 @@ _lock = RendererAgg.lock
 
 
 sns.set_style("darkgrid")
-st.title("The Book of Adam")
+st.title("The Books of Adam")
 
 user_input = "https://www.goodreads.com/user/show/113122191-adam-martin"
 
 user_id = "".join(filter(lambda i: i.isdigit(), user_input))
 user_name = user_input.split(user_id, 1)[1].split("-", 1)[1].replace("-", " ")
 
-@st.cache
+st.header("Analyzing the Reading History of: **{}**".format(string.capwords(user_name)))
+
 def get_user_data(
-    user_id, key="ZRnySx6awjQuExO9tKEJXw", v="2", shelf="read", per_page="200"
+    user_id, key="ZRnySx6awjQuExO9tKEJXw", v="2", shelf="read", page=1, per_page="200"
 ):
     api_url_base = "https://www.goodreads.com/review/list/"
     final_url = (
@@ -58,30 +61,36 @@ def get_user_data(
         + shelf
         + "&per_page="
         + per_page
+        + "&page="
+        + page
     )
     contents = urllib.request.urlopen(final_url).read()
     return contents
 
+@st.cache
+def get_book_data():
 
-user_input = str(user_input)
-contents = get_user_data(user_id=user_id, v="2", shelf="read", per_page="200")
-contents = xmltodict.parse(contents)
+    df = pd.DataFrame()
+    for i in range(5):
+        print('Getting page ' + str(i+1))
+        contents = get_user_data(user_id=user_id, v="2", shelf="read", page=str(i+1), per_page="200")
+        contents = xmltodict.parse(contents)
+        df_new = json_normalize(contents["GoodreadsResponse"]["reviews"]["review"])
+        df = pd.concat([df,df_new],ignore_index=True)
+    return df
 
-line1_spacer1, line1_1, line1_spacer2 = st.columns((0.1, 3.2, 0.1))
+with st.spinner('Getting book data'):
+    df_out = get_book_data()
+    df = df_out.copy()
+    
+# Get total number of Sanderson books read
+sander_count = df[df['book.authors.author.name'].str.contains('Sanderson')]['book.authors.author.name'].count()
+st.metric('Sanderson Books Read',sander_count)
 
-with line1_1:
-    if int(contents["GoodreadsResponse"]["reviews"]["@total"]) == 0:
-        st.write(
-            "Looks like you did not read any books on Goodreads. Add some books to your profile or try a different profile"
-        )
-        st.stop()
-
-    st.header("Analyzing the Reading History of: **{}**".format(string.capwords(user_name)))
-
-df = json_normalize(contents["GoodreadsResponse"]["reviews"]["review"])
 u_books = len(df["book.id.#text"].unique())
 u_authors = len(df["book.authors.author.id"].unique())
-df["read_at_year"] = [i[-4:] if i != None else i for i in df["read_at"]]
+df['read_at_year'] = pd.to_datetime(df['date_added'],utc=True).dt.year
+# df["read_at_year"] = [i[-4:] if i != None else i for i in df["read_at"]]
 has_records = any(df["read_at_year"])
 
 st.write("")
@@ -91,7 +100,7 @@ row3_space1, row3_1, row3_space2, row3_2, row3_space3 = st.columns(
 
 
 with row3_1, _lock:
-    st.subheader("Books Read")
+    st.subheader("Books Added")
     if has_records:
         year_df = pd.DataFrame(df["read_at_year"].dropna().value_counts()).reset_index()
         year_df = year_df.sort_values(by="index")
@@ -101,7 +110,7 @@ with row3_1, _lock:
             x=year_df["index"], y=year_df["read_at_year"], color="goldenrod", ax=ax
         )
         ax.set_xlabel("Year")
-        ax.set_ylabel("Books Read")
+        ax.set_ylabel("Books Added")
         st.pyplot(fig)
     else:
         st.markdown("We do not have information to find out _when_ you read your books")
@@ -139,9 +148,6 @@ with row3_2, _lock:
         "Looks like the average publication date is around **{}**, with your oldest book being **{}** and your youngest being **{}**.".format(
             avg_book_year, oldest_book, youngest_book
         )
-    )
-    st.markdown(
-        "Note that the publication date on Goodreads is the **last** publication date, so the data is altered for any book that has been republished by a publisher."
     )
 
 st.write("")
@@ -200,7 +206,7 @@ with row4_2, _lock:
     ax.set_ylabel("Density")
     st.pyplot(fig)
     st.markdown(
-        "Here is the distribution of average rating by other Goodreads users for the books that you've read. Note that this is a distribution of averages, which explains the lack of extreme values!"
+        "Here is the distribution of average rating by other Goodreads users for the books that you've read."
     )
 
 st.write("")
@@ -248,7 +254,7 @@ with row5_2, _lock:
         if len(days_to_complete):
             time_len_avg = round(np.mean(days_to_complete))
         st.markdown(
-            "On average, it takes you **{} days** between you putting on Goodreads that you're reading a title, and you getting through it! Now let's move on to a gender breakdown of your authors.".format(
+            "On average, it takes you **{} days** between you putting on Goodreads that you're reading a title, and you getting through it!".format(
                 time_len_avg
             )
         )
@@ -265,7 +271,7 @@ row6_space1, row6_1, row6_space2, row6_2, row6_space3 = st.columns(
 
 
 with row6_1, _lock:
-    st.subheader("Gender Breakdown")
+    st.subheader("Author Gender Breakdown")
     # gender algo
     d = gender.Detector()
     new = df["book.authors.author.name"].str.split(" ", n=1, expand=True)
@@ -274,6 +280,7 @@ with row6_1, _lock:
     df["author_gender"] = df["first_name"].apply(d.get_gender)
     df.loc[df["author_gender"] == "mostly_male", "author_gender"] = "male"
     df.loc[df["author_gender"] == "mostly_female", "author_gender"] = "female"
+    df.loc[df["author_gender"] == "andy", "author_gender"] = ""
 
     author_gender_df = pd.DataFrame(
         df["author_gender"].value_counts(normalize=True)
@@ -290,11 +297,9 @@ with row6_1, _lock:
     ax.set_xlabel("Gender")
     st.pyplot(fig)
     st.markdown(
-        "To get the gender breakdown of the books you have read, this next bit takes the first name of the authors and uses that to predict their gender. These algorithms are far from perfect, and tend to miss non-Western/non-English genders often so take this graph with a grain of salt."
+        "A breakdown of the gender of the authors read."
     )
-    st.markdown(
-        "Note: the package I'm using for this prediction outputs 'andy', which stands for androgenous, whenever multiple genders are nearly equally likely (at some threshold of confidence). It is not, sadly, a prediction of a new gender called andy."
-    )
+
 
 with row6_2, _lock:
     st.subheader("Gender Distribution Over Time")
@@ -322,58 +327,7 @@ with row6_2, _lock:
         )
     else:
         st.markdown("We do not have information to find out _when_ you read your books")
-    st.markdown(
-        "Want to read more books written by women? [Here](https://www.penguin.co.uk/articles/2019/mar/best-books-by-female-authors.html) is a great list from Penguin that should be a good start (I'm trying to do better at this myself!)."
-    )
 
 st.write("")
-row7_spacer1, row7_1, row7_spacer2 = st.columns((0.1, 3.2, 0.1))
 
-with row7_1:
-    st.header("**Book List Recommendation for {}**".format(user_name))
 
-    reco_df = pd.read_csv("recommendations_df.csv")
-    unique_list_books = df["book.title"].unique()
-    reco_df["did_user_read"] = reco_df["goodreads_title"].isin(unique_list_books)
-    most_in_common = (
-        pd.DataFrame(reco_df.groupby("recommender_name").sum())
-        .reset_index()
-        .sort_values(by="did_user_read", ascending=False)
-        .iloc[0][0]
-    )
-    avg_in_common = (
-        pd.DataFrame(reco_df.groupby("recommender_name").mean())
-        .reset_index()
-        .sort_values(by="did_user_read", ascending=False)
-        .iloc[0][0]
-    )
-    most_recommended = reco_df[reco_df["recommender_name"] == most_in_common][
-        "recommender"
-    ].iloc[0]
-    avg_recommended = reco_df[reco_df["recommender_name"] == avg_in_common][
-        "recommender"
-    ].iloc[0]
-
-    def get_link(recommended):
-        if "-" not in recommended:
-            link = "https://bookschatter.com/books/" + recommended
-        elif "-" in recommended:
-            link = "https://www.mostrecommendedbooks.com/" + recommended + "-books"
-        return link
-
-    st.markdown(
-        "For one last bit of analysis, we scraped a few hundred book lists from famous thinkers in technology, media, and government (everyone from Barack and Michelle Obama to Keith Rabois and Naval Ravikant). We took your list of books read and tried to recommend one of their lists to book through based on information we gleaned from your list"
-    )
-    st.markdown(
-        "You read the most books in common with **{}**, and your book list is the most similar on average to **{}**. Find their book lists [here]({}) and [here]({}) respectively.".format(
-            most_in_common,
-            avg_in_common,
-            get_link(most_recommended),
-            get_link(avg_recommended),
-        )
-    )
-
-    st.markdown("***")
-    st.markdown(
-        "Thanks for going through this mini-analysis with me! I'd love feedback on this, so if you want to reach out you can find me on [twitter] (https://twitter.com/tylerjrichards) or my [website](http://www.tylerjrichards.com/)."
-    )
