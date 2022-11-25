@@ -1,4 +1,4 @@
-import streamlist as st
+import streamlit as st
 from st_clickable_images import clickable_images
 import requests
 import urllib.request
@@ -52,6 +52,10 @@ if 'data' not in st.session_state:
 
 df = st.session_state['data']
 
+no_image = 'https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png'
+
+df = df[df["book.image_url"].str.contains(no_image)==False]
+
 def show_images():
     clicked = clickable_images(
         df['book.image_url'].tolist(),
@@ -60,5 +64,7 @@ def show_images():
         img_style={"margin": "5px", "height": "200px"},
     )
     return clicked
+
+st.title('Books You Have Read')
 
 show_images()

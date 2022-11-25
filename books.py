@@ -18,8 +18,7 @@ import string
 
 st.set_page_config(page_title="The Books of Adam", layout="wide")
 
-if 'data' not in st.session_state:
-    st.session_state['data'] = []
+
 
 
 def load_lottieurl(url: str):
@@ -81,8 +80,11 @@ def get_book_data():
         df = pd.concat([df,df_new],ignore_index=True)
     return df
 
+if 'data' not in st.session_state:
+    st.session_state['data'] = get_book_data()
+
 with st.spinner('Getting book data'):
-    df_out = get_book_data()
+    df_out = st.session_state['data']
     df = df_out.copy()
     st.session_state['data'] = df
     
