@@ -101,11 +101,11 @@ for id in top_authors_id:
             no_match.append(title)
     print(no_match)
     
-    # Display
+    # Display results
     st.subheader(author_name)
     j = 0
     c = st.columns(4)
-    for title in no_match[:10]:
-        with c[j%2]:
+    for title in no_match[:min(15,len(no_match))]:
+        with c[j%3]:
             st.write(title)
             j = j + 1
