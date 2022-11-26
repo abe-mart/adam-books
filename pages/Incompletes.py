@@ -1,11 +1,12 @@
 import streamlit as st
-from st_clickable_images import clickable_images
 import requests
 import urllib.request
 from pandas import json_normalize
 import pandas as pd
 import xmltodict
-
+import json
+import difflib
+import openlibrary
 
 st.set_page_config(page_title="The Books of Adam", layout="wide")
 
@@ -50,4 +51,41 @@ def get_book_data():
 if 'data' not in st.session_state:
     st.session_state['data'] = get_book_data()
 
+# Get data and sort top 20 authors by rating multiplied by number of ratings
 df = st.session_state['data']
+
+df['rating'] = df['rating'].astype(int)
+
+df_author_group = df.groupby('book.authors.author.id').mean()
+df_author_group_count = df.groupby('book.authors.author.id').count()
+df_author_group['rating'] = df_author_group['rating'] * df_author_group_count['id']
+top_authors_id = df_author_group['rating'].nlargest(20).index.values
+
+# Loop over author ids
+for id in top_authors_id:
+    # id = top_authors_id[0]
+    
+    # Get the name of the authors
+    books_from_author = df[df['book.authors.author.id']==id]
+    author_name = books_from_author['book.authors.author.name'].values[0]
+    print(author_name)
+    
+    # Get list of books by that author
+    api = openlibrary.BookSearch()
+    res = api.get_by_author(author_name)
+    df_author = pd.DataFrame(res._data['docs'])
+    
+    # Filter to only english versions
+    df_author = df_author[df_author['language'].astype(str).str.contains('eng')]
+    
+    # Get books that author has written that have not been read
+    author_titles = pd.DataFrame()
+    no_match = []
+    for title in df_author['title']:
+        print(title)
+        title = title.replace("'", "")
+        title = title.replace('"', "")
+        matches = df.loc[df['book.title_without_series'].str.contains(title,case=False)]
+        if len(matches) == 0:
+            no_match.append(title)
+    print(no_match)

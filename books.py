@@ -335,4 +335,6 @@ with row6_2, _lock:
 
 st.write("")
 
+# Ideas - show most obscure books and authors read, and most popular
+# Show series with unread books, or favorite authors with unread books
 
