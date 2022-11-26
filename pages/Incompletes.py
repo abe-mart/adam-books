@@ -48,11 +48,19 @@ def get_book_data():
         df = pd.concat([df,df_new],ignore_index=True)
     return df
 
-if 'data' not in st.session_state:
-    st.session_state['data'] = get_book_data()
+# if 'data' not in st.session_state:
+#     st.session_state['data'] = []
+#     st.session_state['data'] = get_book_data()
+    
+st.title('Incompletes')
+st.write('Books you haven\'t rated from your top 20 authors')
+print('Incompletes')
 
 # Get data and sort top 20 authors by rating multiplied by number of ratings
-df = st.session_state['data']
+# df = st.session_state['data']
+print('Get book data')
+df = get_book_data()
+df = df.copy()
 
 df['rating'] = df['rating'].astype(int)
 
@@ -63,6 +71,7 @@ top_authors_id = df_author_group['rating'].nlargest(20).index.values
 
 # Loop over author ids
 for id in top_authors_id:
+    print(id)
     # id = top_authors_id[0]
     
     # Get the name of the authors
@@ -82,10 +91,21 @@ for id in top_authors_id:
     author_titles = pd.DataFrame()
     no_match = []
     for title in df_author['title']:
-        print(title)
         title = title.replace("'", "")
         title = title.replace('"', "")
-        matches = df.loc[df['book.title_without_series'].str.contains(title,case=False)]
+        title = title.split(':')[0]
+        title = title.split('(')[0]
+        print(title)
+        matches = books_from_author.loc[books_from_author['book.title_without_series'].str.contains(title,case=False)]
         if len(matches) == 0:
             no_match.append(title)
     print(no_match)
+    
+    # Display
+    st.subheader(author_name)
+    j = 0
+    c = st.columns(4)
+    for title in no_match[:10]:
+        with c[j%2]:
+            st.write(title)
+            j = j + 1

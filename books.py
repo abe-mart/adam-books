@@ -19,8 +19,6 @@ import string
 st.set_page_config(page_title="The Books of Adam", layout="wide")
 
 
-
-
 def load_lottieurl(url: str):
     r = requests.get(url)
     if r.status_code != 200:
