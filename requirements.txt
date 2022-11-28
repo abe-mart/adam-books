@@ -10,4 +10,3 @@ st_clickable_images==0.0.3
 streamlit==1.15.1
 streamlit_lottie==0.0.3
 xmltodict==0.12.0
-~umpy==1.18.1
