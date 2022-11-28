@@ -11,7 +11,6 @@ import xmltodict
 from matplotlib.backends.backend_agg import RendererAgg
 from matplotlib.figure import Figure
 from pandas import json_normalize
-from PIL import Image
 from streamlit_lottie import st_lottie
 import string
 
