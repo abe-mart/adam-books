@@ -56,6 +56,8 @@ st.title('Incompletes')
 st.write('Books you haven\'t rated from your top 20 authors')
 print('Incompletes')
 
+
+
 # Get data and sort top 20 authors by rating multiplied by number of ratings
 # df = st.session_state['data']
 print('Get book data')
