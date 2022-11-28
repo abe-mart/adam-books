@@ -1,11 +1,8 @@
 import streamlit as st
-import requests
 import urllib.request
 from pandas import json_normalize
 import pandas as pd
 import xmltodict
-import json
-import difflib
 import openlibrary
 
 st.set_page_config(page_title="The Books of Adam", layout="wide")
@@ -71,41 +68,54 @@ df_author_group_count = df.groupby('book.authors.author.id').count()
 df_author_group['rating'] = df_author_group['rating'] * df_author_group_count['id']
 top_authors_id = df_author_group['rating'].nlargest(20).index.values
 
-# Loop over author ids
-for id in top_authors_id:
-    print(id)
-    # id = top_authors_id[0]
-    
-    # Get the name of the authors
-    books_from_author = df[df['book.authors.author.id']==id]
-    author_name = books_from_author['book.authors.author.name'].values[0]
-    print(author_name)
-    
-    # Get list of books by that author
-    api = openlibrary.BookSearch()
-    res = api.get_by_author(author_name)
-    df_author = pd.DataFrame(res._data['docs'])
-    
-    # Filter to only english versions
-    df_author = df_author[df_author['language'].astype(str).str.contains('eng')]
-    
-    # Get books that author has written that have not been read
-    author_titles = pd.DataFrame()
-    no_match = []
-    for title in df_author['title']:
-        title = title.replace("'", "")
-        title = title.replace('"', "")
-        title = title.split(':')[0]
-        title = title.split('(')[0]
-        print(title)
-        matches = books_from_author.loc[books_from_author['book.title_without_series'].str.contains(title,case=False)]
-        if len(matches) == 0:
-            no_match.append(title)
-    print(no_match)
-    
+@st.cache
+def get_incompletes(top_authors_id):
+    # Loop over author ids
+    author_names = []
+    book_display = []
+    for id in top_authors_id:
+        print(id)
+        # id = top_authors_id[0]
+        
+        # Get the name of the authors
+        books_from_author = df[df['book.authors.author.id']==id]
+        author_name = books_from_author['book.authors.author.name'].values[0]
+        print(author_name)
+        
+        # Get list of books by that author
+        api = openlibrary.BookSearch()
+        res = api.get_by_author(author_name)
+        df_author = pd.DataFrame(res._data['docs'])
+        
+        # Filter to only english versions
+        df_author = df_author[df_author['language'].astype(str).str.contains('eng')]
+        
+        # Get books that author has written that have not been read
+        no_match = []
+        for title in df_author['title']:
+            title = title.replace("'", "")
+            title = title.replace('"', "")
+            title = title.split(':')[0]
+            title = title.split('(')[0]
+            print(title)
+            matches = books_from_author.loc[books_from_author['book.title_without_series'].str.contains(title,case=False)]
+            if len(matches) == 0:
+                no_match.append(title)
+        print(no_match)
+        
+        author_names.append(author_name)
+        book_display.append(no_match)
+        
+    return author_names, book_display
+
+author_names, book_display = get_incompletes(top_authors_id)
+
+for ind, author_name in enumerate(author_names):
+        
     # Display results
     st.subheader(author_name)
     j = 0
+    no_match = book_display[ind]
     c = st.columns(4)
     for title in no_match[:min(15,len(no_match))]:
         with c[j%3]:
