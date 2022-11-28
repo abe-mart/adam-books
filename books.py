@@ -334,5 +334,14 @@ with row6_2, _lock:
 st.write("")
 
 # Ideas - show most obscure books and authors read, and most popular
-# Show series with unread books, or favorite authors with unread books
+# Show series with unread books, or favorite authors with unread books - Done
+# Word cloud on book descriptions
+
+# Most obscure books
+df['book.ratings_count'] = pd.to_numeric(df['book.ratings_count'])
+df_rating_sort = df.sort_values('book.ratings_count')
+df_rating_sort['book.title'].head(10)
+st.write('Your most obscure books (based on rating counts)')
+st.write(df_rating_sort['book.title'].head(10))
+
 
