@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 from pandas import json_normalize
 from streamlit_lottie import st_lottie
 import string
+import random
 
 
 st.set_page_config(page_title="The Books of Adam", layout="wide")
@@ -25,8 +26,10 @@ def load_lottieurl(url: str):
     return r.json()
 
 
-lottie_book = load_lottieurl("https://assets4.lottiefiles.com/temp/lf20_aKAfIn.json")
-st_lottie(lottie_book, speed=1, height=200, key="initial")
+# lottie_book = load_lottieurl("https://assets4.lottiefiles.com/temp/lf20_aKAfIn.json")
+# st_lottie(lottie_book, speed=1, height=200, key="initial")
+
+st.image('Images/banner.jpg',use_column_width='always')
 
 
 matplotlib.use("agg")

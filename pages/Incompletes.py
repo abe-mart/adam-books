@@ -4,6 +4,7 @@ from pandas import json_normalize
 import pandas as pd
 import xmltodict
 import openlibrary
+import random
 
 st.set_page_config(page_title="The Books of Adam", layout="wide")
 
@@ -49,6 +50,8 @@ def get_book_data():
 #     st.session_state['data'] = []
 #     st.session_state['data'] = get_book_data()
     
+st.image('Images/banner2.jpg',use_column_width='always')
+
 st.title('Incompletes')
 st.write('Books you haven\'t rated from your top 20 authors')
 print('Incompletes')

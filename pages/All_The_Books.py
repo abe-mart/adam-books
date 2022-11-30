@@ -65,6 +65,8 @@ def show_images():
     )
     return clicked
 
+st.image('Images/banner3.jpg',use_column_width='always')
+
 st.title('Books You Have Read')
 
 show_images()
