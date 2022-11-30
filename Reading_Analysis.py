@@ -14,6 +14,10 @@ from pandas import json_normalize
 from streamlit_lottie import st_lottie
 import string
 import random
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+from io import StringIO
+from html.parser import HTMLParser
 
 
 st.set_page_config(page_title="The Books of Adam", layout="wide")
@@ -24,6 +28,23 @@ def load_lottieurl(url: str):
     if r.status_code != 200:
         return None
     return r.json()
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.reset()
+        self.strict = False
+        self.convert_charrefs= True
+        self.text = StringIO()
+    def handle_data(self, d):
+        self.text.write(d)
+    def get_data(self):
+        return self.text.getvalue()
+
+def strip_tags(html):
+    s = MLStripper()
+    s.feed(html)
+    return s.get_data()
 
 
 # lottie_book = load_lottieurl("https://assets4.lottiefiles.com/temp/lf20_aKAfIn.json")
@@ -301,9 +322,6 @@ with row6_1, _lock:
     ax.set_ylabel("Percentage")
     ax.set_xlabel("Gender")
     st.pyplot(fig)
-    st.markdown(
-        "A breakdown of the gender of the authors read."
-    )
 
 
 with row6_2, _lock:
@@ -327,17 +345,30 @@ with row6_2, _lock:
         ax.set_xlabel("Year")
         ax.set_ylabel("Percentage")
         st.pyplot(fig)
-        st.markdown(
-            "Here you can see the gender distribution over time to see how your reading habits may have changed."
-        )
     else:
         st.markdown("We do not have information to find out _when_ you read your books")
 
 st.write("")
 
+# Wordclouds
+st.write('The most common words in your book descriptions')
+desc = df['book.description'].dropna()
+text = strip_tags(' '.join(desc))
+wordcloud = WordCloud(background_color="white",width=1280,height=640).generate(text)
+fig, ax = plt.subplots()
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis("off")
+plt.show()
+st.pyplot(fig)
+
+st.subheader('SanderStats')
+
+
 # Ideas - show most obscure books and authors read, and most popular
 # Show series with unread books, or favorite authors with unread books - Done
 # Word cloud on book descriptions
+
+st.subheader('Obscurity')
 
 # Most obscure books
 df['book.ratings_count'] = pd.to_numeric(df['book.ratings_count'])
