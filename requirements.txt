@@ -10,3 +10,4 @@ st_clickable_images
 streamlit
 streamlit_lottie
 xmltodict
+wordcloud
