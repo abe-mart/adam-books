@@ -344,6 +344,6 @@ df['book.ratings_count'] = pd.to_numeric(df['book.ratings_count'])
 df_rating_sort = df.sort_values('book.ratings_count')
 df_rating_sort['book.title'].head(10)
 st.write('Your most obscure books (based on rating counts)')
-st.write(df_rating_sort['book.title'].head(10))
+st.table(df_rating_sort[['book.title','book.authors.author.name']].head(10))
 
 
