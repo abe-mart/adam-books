@@ -360,10 +360,57 @@ st.pyplot(fig)
 
 st.subheader('SanderStats')
 
-# Get total number of Sanderson books read
-sander_count = df[df['book.authors.author.name'].str.contains('Sanderson')]['book.authors.author.name'].count()
-st.metric('Sanderson Books Read',sander_count)
+sanderbooks = df[df['book.authors.author.name'].str.contains('Sanderson')].copy()
 
+c = st.columns(4)
+
+# Favorite Sanderson Book
+sanderbooks['rating'] = pd.to_numeric(sanderbooks['rating'])
+sanderbooks = sanderbooks.sort_values('rating',ascending=False)
+sander_top = sanderbooks.iloc[0]
+sanderbooks = sanderbooks.sort_values('rating',ascending=True)
+sander_bottom = sanderbooks.iloc[0]
+
+# First added
+sanderbooks['date_added'] = pd.to_datetime(sanderbooks['date_added'])
+sanderbooks = sanderbooks.sort_values('date_added',ascending=True)
+sander_first = sanderbooks.iloc[0]
+sanderbooks = sanderbooks.sort_values('date_added',ascending=False)
+sander_last = sanderbooks.iloc[0]
+
+# Pages
+sanderbooks['book.num_pages'] = pd.to_numeric(sanderbooks['book.num_pages'])
+sanderbooks = sanderbooks.sort_values('book.num_pages',ascending=True)
+sander_short = sanderbooks.iloc[0]
+sanderbooks = sanderbooks.sort_values('book.num_pages',ascending=False)
+sander_long = sanderbooks.iloc[0]
+
+with c[0]:
+    # Get total number of Sanderson books read
+    sander_count = len(sanderbooks)
+    st.metric('**Total Sanderson Books Read**',sander_count)
+    
+    st.markdown('**Your last Sanderson book**')
+    st.write(sander_last['book.title'])
+
+
+with c[1]:
+    st.markdown('**Your highest rated Sanderson book**')
+    st.write(sander_top['book.title'])
+    
+    st.markdown('**Your shortest Sanderson book**')
+    st.write(sander_short['book.title'])
+
+with c[2]:
+    st.markdown('**Your lowest rated Sanderson book**')
+    st.write(sander_bottom['book.title'])
+    
+    st.markdown('**Your longest Sanderson book**')
+    st.write(sander_long['book.title'])
+    
+with c[3]:
+    st.markdown('**Your first Sanderson book**')
+    st.write(sander_first['book.title'])
 # Ideas - show most obscure books and authors read, and most popular - Done
 # Show series with unread books, or favorite authors with unread books - Done
 # Word cloud on book descriptions - Done

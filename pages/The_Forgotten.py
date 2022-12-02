@@ -5,6 +5,7 @@ import pandas as pd
 import xmltodict
 import openlibrary
 import random
+from fuzzywuzzy import fuzz
 
 st.set_page_config(page_title="The Books of Adam", layout="wide")
 
@@ -52,8 +53,8 @@ def get_book_data():
     
 st.image('Images/banner2.jpg',use_column_width='always')
 
-st.title('Incompletes')
-st.write('Books you haven\'t rated from your top 20 authors')
+st.title('The Forgotten')
+st.write('Books you haven\'t rated from your top 20 authors.  (Or that have titles off by at least one letter :D)')
 print('Incompletes')
 
 
@@ -101,7 +102,15 @@ def get_incompletes(top_authors_id):
             title = title.split(':')[0]
             title = title.split('(')[0]
             print(title)
-            matches = books_from_author.loc[books_from_author['book.title_without_series'].str.contains(title,case=False)]
+            # matches = books_from_author.loc[books_from_author['book.title_without_series'].str.contains(title,case=False)]
+            matches = []
+            for read_title in books_from_author['book.title_without_series']:
+                
+                if fuzz.ratio(read_title,title) >= 50:
+                    matches.append(read_title)
+                else:
+                    print(read_title)
+            # matches = books_from_author.loc[fuzz.ratio(books_from_author['book.title_without_series'].str,title)>=90]
             if len(matches) == 0:
                 no_match.append(title)
         print(no_match)

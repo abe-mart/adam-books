@@ -11,3 +11,4 @@ streamlit
 streamlit_lottie
 xmltodict
 wordcloud
+fuzzywuzzy
