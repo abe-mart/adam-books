@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.markdown('Adam, the conqueror of the chemical engineering program,
+st.markdown('''Adam, the conqueror of the chemical engineering program,
 A master of strategy and tactics, unrivaled in Age of Empires.
 His mind a forge, crafting solutions to complex problems with ease.
 
@@ -46,4 +46,4 @@ Leading us all towards a brighter and better future.
 
 So let us raise a toast to Adam, the conqueror of the chemical engineering program,
 The master of Age of Empires, and the all-around good guy.
-His legacy will live on forever, inspiring us all to be the best that we can be.')
+His legacy will live on forever, inspiring us all to be the best that we can be.''')
