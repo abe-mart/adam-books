@@ -326,6 +326,18 @@ with row6_1, _lock:
 
 with row6_2, _lock:
     st.subheader("Gender Distribution Over Time")
+    
+    # authors = df['book.authors.author.name'].astype('category')
+    
+    # others = authors.value_counts().index[30:]
+    # label = 'Other'
+    
+    # authors = authors.cat.add_categories([label])
+    # authors = authors.replace(others, label)
+    
+    # authors = authors.to_frame()
+    
+    # authors.groupby('book.authors.author.name').size().plot(kind='pie')
 
     if has_records:
         year_author_df = pd.DataFrame(
