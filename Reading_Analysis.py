@@ -109,9 +109,6 @@ with st.spinner('Getting book data'):
     df = df_out.copy()
     st.session_state['data'] = df
     
-# Get total number of Sanderson books read
-sander_count = df[df['book.authors.author.name'].str.contains('Sanderson')]['book.authors.author.name'].count()
-st.metric('Sanderson Books Read',sander_count)
 
 u_books = len(df["book.id.#text"].unique())
 u_authors = len(df["book.authors.author.id"].unique())
@@ -362,7 +359,7 @@ with row6_2, _lock:
 
 st.write("")
 
-# Wordclouds
+# Wordcloud
 st.write('The most common words in your book descriptions')
 desc = df['book.description'].dropna()
 text = strip_tags(' '.join(desc))
@@ -375,18 +372,78 @@ st.pyplot(fig)
 
 st.subheader('SanderStats')
 
+sanderbooks = df[df['book.authors.author.name'].str.contains('Sanderson')].copy()
 
-# Ideas - show most obscure books and authors read, and most popular
+c = st.columns(4)
+
+# Favorite Sanderson Book
+sanderbooks['rating'] = pd.to_numeric(sanderbooks['rating'])
+sanderbooks = sanderbooks.sort_values('rating',ascending=False)
+sander_top = sanderbooks.iloc[0]
+sanderbooks = sanderbooks.sort_values('rating',ascending=True)
+sander_bottom = sanderbooks.iloc[0]
+
+# First added
+sanderbooks['date_added'] = pd.to_datetime(sanderbooks['date_added'])
+sanderbooks = sanderbooks.sort_values('date_added',ascending=True)
+sander_first = sanderbooks.iloc[0]
+sanderbooks = sanderbooks.sort_values('date_added',ascending=False)
+sander_last = sanderbooks.iloc[0]
+
+# Pages
+sanderbooks['book.num_pages'] = pd.to_numeric(sanderbooks['book.num_pages'])
+sanderbooks = sanderbooks.sort_values('book.num_pages',ascending=True)
+sander_short = sanderbooks.iloc[0]
+sanderbooks = sanderbooks.sort_values('book.num_pages',ascending=False)
+sander_long = sanderbooks.iloc[0]
+
+with c[0]:
+    # Get total number of Sanderson books read
+    sander_count = len(sanderbooks)
+    st.metric('**Total Sanderson Books Read**',sander_count)
+    
+    st.markdown('**Your last Sanderson book**')
+    st.write(sander_last['book.title'])
+
+
+with c[1]:
+    st.markdown('**Your highest rated Sanderson book**')
+    st.write(sander_top['book.title'])
+    
+    st.markdown('**Your shortest Sanderson book**')
+    st.write(sander_short['book.title'])
+
+with c[2]:
+    st.markdown('**Your lowest rated Sanderson book**')
+    st.write(sander_bottom['book.title'])
+    
+    st.markdown('**Your longest Sanderson book**')
+    st.write(sander_long['book.title'])
+    
+with c[3]:
+    st.markdown('**Your first Sanderson book**')
+    st.write(sander_first['book.title'])
+# Ideas - show most obscure books and authors read, and most popular - Done
 # Show series with unread books, or favorite authors with unread books - Done
-# Word cloud on book descriptions
+# Word cloud on book descriptions - Done
+# Your favorite and least favorite sanderson book, most recently read sanderson book, first added sanderson book, longest, shortest
+
+st.subheader('Popularity')
+
+# Most obscure books
+df['book.ratings_count'] = pd.to_numeric(df['book.ratings_count'])
+df_rating_sort = df.sort_values('book.ratings_count',ascending=False)
+# df_rating_sort['book.title'].head(15)
+st.write('Your most popular books (based on rating counts)')
+st.table(df_rating_sort[['book.title','book.authors.author.name','book.ratings_count']].head(15))
 
 st.subheader('Obscurity')
 
 # Most obscure books
 df['book.ratings_count'] = pd.to_numeric(df['book.ratings_count'])
 df_rating_sort = df.sort_values('book.ratings_count')
-df_rating_sort['book.title'].head(10)
+# df_rating_sort['book.title'].head(15)
 st.write('Your most obscure books (based on rating counts)')
-st.write(df_rating_sort['book.title'].head(10))
+st.table(df_rating_sort[['book.title','book.authors.author.name','book.ratings_count']].head(15))
 
 
