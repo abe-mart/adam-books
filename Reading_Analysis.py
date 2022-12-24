@@ -370,6 +370,17 @@ plt.axis("off")
 plt.show()
 st.pyplot(fig)
 
+st.subheader('Total Stats')
+
+c = st.columns(4)
+
+with c[0]:
+    st.metric('**Total Books Read**',len(df))
+    
+with c[1]:
+    st.metric('**Unique Authors**',len(df['book.authors.author.name'].unique()))
+    
+
 st.subheader('SanderStats')
 
 sanderbooks = df[df['book.authors.author.name'].str.contains('Sanderson')].copy()
