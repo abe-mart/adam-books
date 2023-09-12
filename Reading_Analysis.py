@@ -321,29 +321,41 @@ with row6_1, _lock:
     st.pyplot(fig)
 
 
-with row6_2, _lock:
-    st.subheader("Gender Distribution Over Time")
+# with row6_2, _lock:
+#     st.subheader("Gender Distribution Over Time")
+    
+    # authors = df['book.authors.author.name'].astype('category')
+    
+    # others = authors.value_counts().index[30:]
+    # label = 'Other'
+    
+    # authors = authors.cat.add_categories([label])
+    # authors = authors.replace(others, label)
+    
+    # authors = authors.to_frame()
+    
+    # authors.groupby('book.authors.author.name').size().plot(kind='pie')
 
-    if has_records:
-        year_author_df = pd.DataFrame(
-            df.groupby(["read_at_year"])["author_gender"].value_counts(normalize=True)
-        )
-        year_author_df.columns = ["Percentage"]
-        year_author_df.reset_index(inplace=True)
-        year_author_df = year_author_df[year_author_df["read_at_year"] != ""]
-        fig = Figure()
-        ax = fig.subplots()
-        sns.lineplot(
-            x=year_author_df["read_at_year"],
-            y=year_author_df["Percentage"],
-            hue=year_author_df["author_gender"],
-            ax=ax,
-        )
-        ax.set_xlabel("Year")
-        ax.set_ylabel("Percentage")
-        st.pyplot(fig)
-    else:
-        st.markdown("We do not have information to find out _when_ you read your books")
+    # if has_records:
+    #     year_author_df = pd.DataFrame(
+    #         df.groupby(["read_at_year"])["author_gender"].value_counts(normalize=True)
+    #     )
+    #     year_author_df.columns = ["Percentage"]
+    #     year_author_df.reset_index(inplace=True)
+    #     year_author_df = year_author_df[year_author_df["read_at_year"] != ""]
+    #     fig = Figure()
+    #     ax = fig.subplots()
+    #     sns.lineplot(
+    #         x=year_author_df["read_at_year"],
+    #         y=year_author_df["Percentage"],
+    #         hue=year_author_df["author_gender"],
+    #         ax=ax,
+    #     )
+    #     ax.set_xlabel("Year")
+    #     ax.set_ylabel("Percentage")
+    #     st.pyplot(fig)
+    # else:
+    #     st.markdown("We do not have information to find out _when_ you read your books")
 
 st.write("")
 
@@ -357,6 +369,17 @@ plt.imshow(wordcloud, interpolation='bilinear')
 plt.axis("off")
 plt.show()
 st.pyplot(fig)
+
+st.subheader('Total Stats')
+
+c = st.columns(4)
+
+with c[0]:
+    st.metric('**Total Books Read**',len(df))
+    
+with c[1]:
+    st.metric('**Unique Authors**',len(df['book.authors.author.name'].unique()))
+    
 
 st.subheader('SanderStats')
 
