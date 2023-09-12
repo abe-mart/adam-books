@@ -125,9 +125,8 @@ row3_space1, row3_1, row3_space2, row3_2, row3_space3 = st.columns(
 with row3_1, _lock:
     st.subheader("Books Added")
     if has_records:
-        df
         year_df = pd.DataFrame(df["read_at_year"].dropna().value_counts()).reset_index()
-        year_df = year_df.sort_values(by='index')
+        year_df = year_df.sort_values(by='read_at_year')
         fig = Figure()
         ax = fig.subplots()
         sns.barplot(
